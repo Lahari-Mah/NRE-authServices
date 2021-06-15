@@ -16,7 +16,7 @@ pipeline
     
     stage('Perform Regression Testing'){
       steps{
-    		sh 'newman run /Users/rm/Desktop/NjcLabs/newman/getUserServices.postman_collection.json'
+    		sh 'newman run /Users/rm/Desktop/NjcLabs/newman/postAuthorisation.postman_collection.json'
     	 }
     }
   }
