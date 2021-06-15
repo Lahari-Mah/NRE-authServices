@@ -1,0 +1,137 @@
+#%RAML 1.0
+title: User Authorisation SAPI
+version: 1.0.development
+baseUri: http://localohost:8081/api/
+
+uses:
+  custlib: /exchange_modules/eb566cbb-279c-4a2f-bb62-950b9648e62f/customer-library/1.0.10/customer-library.raml
+
+traits:
+  client-id-required: !include /exchange_modules/eb566cbb-279c-4a2f-bb62-950b9648e62f/customer-trait/1.0.2/customer-trait.raml
+
+/users:
+  /create:
+    is:
+      - client-id-required
+    post:
+      description: Customer details registered to Okta application
+      body:
+        application/json:
+          type: custlib.CustomerAuthDetailsType
+          examples:
+            input: !include /Examples/customerExample.raml
+      responses:
+        200:
+          body:
+            application/json:
+              example:
+                description: Success Message
+                message: Customers registered to Okta
+        400:
+          body:
+            application/json:
+              example:
+                description: Error message
+                message: Error in registering customer details to Okta
+  /auth:
+    is:
+      - client-id-required
+    get:
+      headers:
+        Authorization: 
+          type: custlib.CustomerAuthType
+          examples:
+            input: !include /Examples/CustomerAuthExample.raml
+    post:
+      description: Customer details registered to Okta application
+      body:
+        application/json:
+          type: custlib.CustomerAuthType
+          examples:
+            input: !include /Examples/CustomerAuthExample.raml
+      responses:
+        200:
+          body:
+            application/json:
+              example:
+                output: {status: "success"}
+        400:
+          body:
+            application/json:
+              example:
+                description: Error message
+                message: Authentication Failure
+    /update:
+      is:
+        - client-id-required
+      post:
+        description: User profile details has been changed
+        body:
+          application/json:
+            type: custlib.UserUpdateType
+            examples:
+              input: !include /Examples/customerExample.raml
+        responses:
+          200:
+            body:
+              application/json:
+                example:
+                  output: {status: "success"}
+          400:
+            body:
+              application/json:
+                example:
+                  description: Error message
+                  message: Issue in changing user details
+    /reset:
+      is:
+        - client-id-required
+      post:
+        description: User credentials has been reset
+        body:
+          application/json:
+            type: custlib.PasswordType
+            examples:
+              input: !include /Examples/passwordExample.raml
+        responses:
+          200:
+            body:
+              application/json:
+                example:
+                  description: Success Message
+                  message: Password changed successfully
+          400:
+            body:
+              application/json:
+                example:
+                  description: Error Message
+                  message: Issue in changing password
+    /forgot:
+      is:
+        - client-id-required
+      post:
+        description: Password has been changed for the User
+        body:
+          application/json:
+            type: custlib.PasswordType
+            examples:
+              input: !include /Examples/passwordExample.raml
+        responses:
+          200:
+            body:
+              application/json:
+                example:
+                  description: Success Message
+                  message: Password changed successfully
+          400:
+            body:
+              application/json:
+                example:
+                  description: Error Message
+                  message: Issue in changing password
+
+                
+
+
+                  
+      

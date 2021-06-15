@@ -1,0 +1,166 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:munit="http://www.mulesoft.org/schema/mule/munit" xmlns:munit-tools="http://www.mulesoft.org/schema/mule/munit-tools"
+	xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
+	xsi:schemaLocation="
+		http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+		http://www.mulesoft.org/schema/mule/munit http://www.mulesoft.org/schema/mule/munit/current/mule-munit.xsd
+		http://www.mulesoft.org/schema/mule/munit-tools  http://www.mulesoft.org/schema/mule/munit-tools/current/mule-munit-tools.xsd">
+	<munit:config name="user-auth-implementation-test-suite.xml" />
+	<munit:test name="user-auth-registrationFlowTest" doc:id="6dea09d0-12b1-4f30-8171-f0f6e5add5fc" description="Test" timeOut="120000">
+		<munit:behavior >
+			<munit-tools:mock-when doc:name="Mock when" doc:id="2f11521b-beb4-4c7b-a307-9a8697cf6016" processor="http:request">
+				<munit-tools:with-attributes >
+					<munit-tools:with-attribute whereValue="1bd173ec-845d-4f0a-a82c-7bbb5a0626a7" attributeName="doc:id" />
+				</munit-tools:with-attributes>
+				<munit-tools:then-return >
+					<munit-tools:payload value='#[&#10;output application/json&#10;---&#10;{&#10;"status": "Created Successfully",&#10;"id": "123"&#10;}&#10;]' />
+				</munit-tools:then-return>
+			</munit-tools:mock-when>
+		</munit:behavior>
+		<munit:execution >
+			<flow-ref doc:name="user-authPayload-setEvent" doc:id="f904be2d-c228-4836-ac28-bd166eb45981" name="user-authPayload-setEvent"/>
+			<flow-ref doc:name="Flow-ref to user-auth-registrationFlow" doc:id="419a4f19-0ee2-4b20-b720-8e4e08fab6c1" name="user-auth-registrationFlow"/>
+		</munit:execution>
+		<munit:validation >
+			<munit-tools:assert-that doc:name="notNull" doc:id="e9e112ad-5fd6-4856-8786-ca4202165f47" message="#['Not as expected']" expression="#[payload]" is="#[MunitTools::notNullValue()]"/>
+		</munit:validation>
+	</munit:test>
+	<flow name="user-authPayload-setEvent" doc:id="732b78ba-de36-4451-bb77-390f8ce38bda" >
+		<munit:set-event doc:name="authPayload" doc:id="cb4e7e88-cbef-49eb-9da5-64258b90ff31" >
+			<munit:payload value='#[&#10;output application/json&#10;---&#10;{&#10; "firstName": "UserE2",&#10;  "lastName": "UserE2Last",&#10;  "emailId": "UserE2@gmail.com",&#10;  "phoneNo": "8765402599",&#10;  "password": "12345678!20",&#10;  "recoveryQuestion": "Mothers maiden name",&#10;  "recoveryAnswer": "Jalladi"&#10;}]' mediaType="application/json" />
+		</munit:set-event>
+	</flow>
+	<munit:test name="user-authorisationFlowTest" doc:id="2a87384f-f5a3-4343-a55e-13f5948935eb" description="Test" timeOut="120000">
+		<munit:behavior >
+			<munit-tools:mock-when doc:name="authFlow" doc:id="35797533-4743-44ee-b4c8-160a2ac8a57b" processor="http:request">
+				<munit-tools:with-attributes >
+					<munit-tools:with-attribute whereValue="5cf90f3b-8915-4668-9722-a85b628bade9" attributeName="doc:id" />
+				</munit-tools:with-attributes>
+				<munit-tools:then-return >
+					<munit-tools:payload value='#[&#10;output application/json&#10;---&#10;{&#10;"status": "Login Successfully",&#10;"userid": "123"&#10;}&#10;]' />
+				</munit-tools:then-return>
+			</munit-tools:mock-when>
+		</munit:behavior>
+		<munit:execution >
+			<flow-ref doc:name="user-authPayload-setEvent" doc:id="41764259-ee0d-459d-9b92-81c5536d33b7" name="user-authPayload-setEvent"/>
+			<flow-ref doc:name="Flow-ref to user-authorisationFlow" doc:id="f5d1cd3c-82c4-45c3-a616-5273468b5563" name="user-authorisationFlow"/>
+		</munit:execution>
+		<munit:validation >
+			<munit-tools:assert-that doc:name="notNull" doc:id="74240395-c9ce-4979-affa-4f3883631556" message="#['Not as expected']" expression="#[payload]" is="#[MunitTools::notNullValue()]"/>
+		</munit:validation>
+	</munit:test>
+	<munit:test name="user-auth-updateFlowTest" doc:id="2f5f6efd-6ded-4d72-b9d6-fcdebed02789" description="Test" timeOut="120000">
+		<munit:behavior >
+			<munit-tools:mock-when doc:name="auth" doc:id="296a7392-609d-4af7-88aa-53ab059fd8bb" processor="flow-ref">
+				<munit-tools:with-attributes >
+					<munit-tools:with-attribute whereValue="2dd74aea-2933-41ef-89f6-ede72a52dd8c" attributeName="doc:id" />
+				</munit-tools:with-attributes>
+				<munit-tools:then-return >
+					<munit-tools:payload value='#[&#10;output application/json&#10;---&#10;{&#10;status: "Authorised",&#10;userid: "123"&#10;}&#10;]' />
+				</munit-tools:then-return>
+			</munit-tools:mock-when>
+			<munit-tools:mock-when doc:name="authUpdate" doc:id="8583c787-8280-4e6a-8a42-321119c34ef3" processor="http:request">
+				<munit-tools:with-attributes >
+					<munit-tools:with-attribute whereValue="72c4b99d-4dc8-4f97-a093-4c86e37785cc" attributeName="doc:id" />
+				</munit-tools:with-attributes>
+				<munit-tools:then-return >
+					<munit-tools:payload value='#[&#10;output application/json&#10;---&#10;{&#10;"status": "Message",&#10;"userid": "123"&#10;}&#10;]' />
+				</munit-tools:then-return>
+			</munit-tools:mock-when>
+		</munit:behavior>
+		<munit:execution >
+			<flow-ref doc:name="user-authPayload-setEvent" doc:id="52a707d0-ca40-4bcf-8446-8463f74f2258" name="user-authPayload-setEvent"/>
+			<flow-ref doc:name="Flow-ref to user-auth-updateFlow" doc:id="9044591f-c547-4620-8c5c-bfa2af44e174" name="user-auth-updateFlow"/>
+		</munit:execution>
+		<munit:validation >
+			<munit-tools:assert-that doc:name="NotNull" doc:id="34465da7-e508-4d4c-a06a-bbebeed26222" message="#['Not as expected']" expression="#[payload]" is="#[MunitTools::notNullValue()]"/>
+		</munit:validation>
+	</munit:test>
+	<munit:test name="user-auth-resetPasswordFlowTest" doc:id="4771f6d7-d6f7-41dc-9835-30dae0117c0f" description="Test" timeOut="120000">
+		<munit:behavior >
+			<munit-tools:mock-when doc:name="auth" doc:id="ad2e6a70-23a8-41d7-98d9-7f5ccaeaf1c1" processor="flow-ref">
+				<munit-tools:with-attributes >
+					<munit-tools:with-attribute whereValue="94cf001f-d4f1-4fc0-969d-6b9d5ced038c" attributeName="doc:id" />
+				</munit-tools:with-attributes>
+				<munit-tools:then-return >
+					<munit-tools:payload value="#[&#10;output application/json&#10;---&#10;{&#10;status: 'Authorised',&#10;userid: '123'&#10;}&#10;]" />
+				</munit-tools:then-return>
+			</munit-tools:mock-when>
+			<munit-tools:mock-when doc:name="resetMock" doc:id="002f2076-b171-42fc-92c7-bb0ae5ae9e7e" processor="http:request">
+				<munit-tools:with-attributes >
+					<munit-tools:with-attribute whereValue="8ecdabd4-6c28-41b1-8007-56c21aaf4ccb" attributeName="doc:id" />
+				</munit-tools:with-attributes>
+				<munit-tools:then-return >
+					<munit-tools:payload value='#[&#10;output application/json&#10;---&#10;{&#10;"status": "Reset",&#10;"userid": "123"&#10;}&#10;]' />
+				</munit-tools:then-return>
+			</munit-tools:mock-when>
+		</munit:behavior>
+		<munit:execution >
+			<flow-ref doc:name="user-authPayload-setEvent" doc:id="ccf82241-7333-44b7-b8ab-ea40c7ca46f8" name="user-authPayload-setEvent"/>
+			<flow-ref doc:name="Flow-ref to user-auth-resetPasswordFlow" doc:id="3e47f69b-de34-44e7-aa06-8614312219fa" name="user-auth-resetPasswordFlow"/>
+		</munit:execution>
+		<munit:validation >
+			<munit-tools:assert-that doc:name="notNull" doc:id="43ebba7e-36b4-4d6e-aec5-1e8fc1874814" message="#['Not as expected']" expression="#[payload]" is="#[MunitTools::notNullValue()]"/>
+		</munit:validation>
+	</munit:test>
+	<munit:test name="user-auth-forgotPasswordErrorFlowTest" doc:id="81ad7627-b769-4166-a32f-f2959aaec25f" description="Test" timeOut="120000" expectedErrorType="ANY">
+		<munit:behavior >
+			<munit-tools:mock-when doc:name="getUser" doc:id="8d36c113-f625-4c00-8dd4-fc045bd5e942" processor="flow-ref">
+				<munit-tools:with-attributes >
+					<munit-tools:with-attribute whereValue="84c642fe-fdff-4f1a-a9ba-1ccfa19065ff" attributeName="doc:id" />
+				</munit-tools:with-attributes>
+				<munit-tools:then-return >
+					<munit-tools:error typeId="ANY" />
+					<munit-tools:variables >
+						<munit-tools:variable key="httpStatus" value="#['400']" mediaType="application/json" />
+					</munit-tools:variables>
+				</munit-tools:then-return>
+			</munit-tools:mock-when>
+		</munit:behavior>
+		<munit:execution >
+			<flow-ref doc:name="user-authPayload-setEvent" doc:id="065aad31-fd16-4b12-8b52-b7f441c0107c" name="user-authPayload-setEvent"/>
+			<flow-ref doc:name="Flow-ref to user-auth-forgotPasswordFlow" doc:id="bc7bf9e3-2f19-45b3-96ec-ccd377e7e635" name="user-auth-forgotPasswordFlow"/>
+		</munit:execution>
+		<munit:validation>
+			<munit-tools:verify-call doc:name="mockStatus" doc:id="3c5811d7-00e9-4a09-8233-39be7a25545d" processor="flow-ref" times="1">
+				<munit-tools:with-attributes >
+					<munit-tools:with-attribute whereValue="84c642fe-fdff-4f1a-a9ba-1ccfa19065ff" attributeName="doc:id" />
+				</munit-tools:with-attributes>
+			</munit-tools:verify-call>
+		</munit:validation>
+	</munit:test>
+	<munit:test name="user-auth-forgotPwdSuccessFlowTest" doc:id="1b8e7321-4237-4ac5-a52b-7bc279411b6f" description="Test">
+		<munit:behavior >
+			<munit-tools:mock-when doc:name="getUser" doc:id="4fe46420-20f5-48a1-b59f-9104136b6b39" processor="http:request">
+				<munit-tools:with-attributes >
+					<munit-tools:with-attribute whereValue="8c5f44aa-bb12-4c6f-b701-f98c2fa8c3bf" attributeName="doc:id" />
+				</munit-tools:with-attributes>
+				<munit-tools:then-return >
+					<munit-tools:payload value='#[&#10;output application/json&#10;---&#10;[{&#10;status: "userFound",&#10;id: "123"&#10;}]&#10;]' />
+				</munit-tools:then-return>
+			</munit-tools:mock-when>
+			<munit-tools:mock-when doc:name="forgotPwd" doc:id="7c8559ac-b1f1-4124-a0c0-edb6addd53a8" processor="http:request">
+				<munit-tools:with-attributes >
+					<munit-tools:with-attribute whereValue="c23c7d3c-693f-470e-b276-43314fe68b9f" attributeName="doc:id" />
+				</munit-tools:with-attributes>
+				<munit-tools:then-return >
+					<munit-tools:payload value='#[&#10;output application/json&#10;---&#10;{&#10;resetPasswordUrl: "Password reset URL"&#10;}&#10;]' />
+				</munit-tools:then-return>
+			</munit-tools:mock-when>
+		</munit:behavior>
+		<munit:execution >
+			<flow-ref doc:name="user-authPayload-setEvent" doc:id="7f509810-2d51-4615-93b1-7407c9dc9ec5" name="user-authPayload-setEvent"/>
+			<flow-ref doc:name="Flow-ref to user-auth-forgotPasswordFlow" doc:id="d27fdae3-159a-4722-aab0-2fb8d297b198" name="user-auth-forgotPasswordFlow"/>
+		</munit:execution>
+		<munit:validation >
+			<munit-tools:verify-call doc:name="Verify call" doc:id="2905d25c-e9c1-4706-8841-23dbc706d8d2" processor="http:request" atLeast="#[1]">
+				<munit-tools:with-attributes >
+					<munit-tools:with-attribute whereValue="c23c7d3c-693f-470e-b276-43314fe68b9f" attributeName="doc:id" />
+				</munit-tools:with-attributes>
+			</munit-tools:verify-call>
+		</munit:validation>
+	</munit:test>
+
+</mule>

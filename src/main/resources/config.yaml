@@ -1,0 +1,10 @@
+auth:
+  apikey: "![W+TfeTPaui0cpB1MAmEPiNkknF1nvbRqLRBzXbglpuomRNEeZlt5WkIV2U97LFcx]"
+  
+http:
+  port: "8081"
+  
+serviceNow:
+  port: "8086"
+  host: "0.0.0.0"
+  protocol: "HTTP"

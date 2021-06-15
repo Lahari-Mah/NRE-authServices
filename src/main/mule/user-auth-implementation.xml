@@ -1,0 +1,365 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns:national-railway-train-services-api="http://www.mulesoft.org/schema/mule/national-railway-train-services-api"
+	xmlns:json-logger="http://www.mulesoft.org/schema/mule/json-logger"
+	xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+http://www.mulesoft.org/schema/mule/json-logger http://www.mulesoft.org/schema/mule/json-logger/current/mule-json-logger.xsd
+http://www.mulesoft.org/schema/mule/national-railway-train-services-api http://www.mulesoft.org/schema/mule/national-railway-train-services-api/current/mule-national-railway-train-services-api.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
+	<flow name="user-auth-registrationFlow" doc:id="64591487-dbb8-4a65-a269-07dc9656ecd4" >
+		<json-logger:logger doc:name="userAuthRegistrationStart_Logger" doc:id="ad720d2a-fed9-4439-8f7e-f27661e0000d" config-ref="JSON_Logger_Config" message="userAuthRegistrationStart_Logger"/>
+		<ee:transform doc:name="AuthPayload" doc:id="815c1a35-659b-4432-9185-bfeef3ef1d74" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+  "profile": {
+    "firstName": payload.firstName,
+    "lastName": payload.lastName,
+    "email": payload.emailId,
+    "login": payload.emailId,
+    "mobilePhone": payload.phoneNo
+  },
+  "credentials": {
+    "password" : { "value": payload.password },
+    "recovery_question": {
+      "question": payload.recoveryQuestion,
+      "answer": payload.recoveryAnswer
+    }
+  }
+}]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<http:request method="POST" doc:name="authRegistrationRequest" doc:id="1bd173ec-845d-4f0a-a82c-7bbb5a0626a7" config-ref="HTTP_Request_configuration" path="/users" responseTimeout="30000">
+			<http:headers ><![CDATA[#[output application/java
+---
+{
+	"Authorization" : "SSWS ${secure::auth.apikey}"
+}]]]></http:headers>
+			<http:query-params ><![CDATA[#[output application/java
+---
+{
+	"activate" : "true"
+}]]]></http:query-params>
+		</http:request>
+		<json-logger:logger doc:name="userAuthRegistration_AfterRequest" doc:id="51711c82-93ed-4967-9151-5b4fb68ce1f4" message="userAuthRegistration After Request Logger" config-ref="JSON_Logger_Config" tracePoint="FLOW"/>
+		<ee:transform doc:name="Final Payload" doc:id="29bbba4d-1c98-48b0-9266-7181feac8cd0" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+  Description: "Success Message",
+  Message: "Customer registered successfully!",
+  id: payload.id,
+  status: payload.status
+}]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<json-logger:logger doc:name="userAuthRegistration_End" doc:id="79662897-4a53-459f-8918-60d7217fbf04" config-ref="JSON_Logger_Config" message="userAuthRegistration End Logger" tracePoint="END"/>
+		<error-handler >
+			<on-error-continue enableNotifications="true" logException="true" doc:name="On Error Continue" doc:id="2d8a49df-d0c4-4c5b-b737-c607cdd95a6e" type="HTTP:BAD_REQUEST, HTTP:CLIENT_SECURITY, HTTP:METHOD_NOT_ALLOWED, HTTP:NOT_ACCEPTABLE, HTTP:PARSING, HTTP:SECURITY, HTTP:TIMEOUT, HTTP:TOO_MANY_REQUESTS, HTTP:UNAUTHORIZED, HTTP:UNSUPPORTED_MEDIA_TYPE, EXPRESSION, STREAM_MAXIMUM_SIZE_EXCEEDED">
+				<ee:transform doc:name="Erro Message" doc:id="9ee45ded-fdd4-48c8-a136-bcb801689d83" >
+					<ee:message >
+						<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+	"Error Type": error.errorType.identifier,
+	"Error Message": error.errorMessage.payload,
+	"Error Description": error.detailedDescription
+}]]></ee:set-payload>
+					</ee:message>
+				</ee:transform>
+				<json-logger:logger doc:name="User_AuthorisationRego_ErrorLogger" doc:id="8446487c-1484-4e88-8f60-ac81bdb148e5" config-ref="JSON_Logger_Config" message="User Authenticate Registration Error Logs" priority="ERROR"/>
+			</on-error-continue>
+		</error-handler>
+	</flow>
+	<flow name="user-authorisationFlow" doc:id="efc6fc83-0ac5-48e3-8488-da35cf5183f9" >
+		<json-logger:logger doc:name="userAuthorisationStart_Logger" doc:id="78e6d7c7-b401-4793-a34e-1369b8f4cbf3" config-ref="JSON_Logger_Config" message="userAuthorisationStart Logger"/>
+		<ee:transform doc:name="AuthPayload" doc:id="e7035aac-6566-45dc-8975-91025df2cb53" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+  "username": payload.emailId,
+  "password": payload.password,
+  "options": {
+    "multiOptionalFactorEnroll": false,
+    "warnBeforePasswordExpired": true
+  }  
+}]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<http:request method="POST" doc:name="authorisationRequest" doc:id="5cf90f3b-8915-4668-9722-a85b628bade9" config-ref="HTTP_Request_configuration" path="/authn"/>
+		<json-logger:logger doc:name="userAuthorisation_AfterRequest" doc:id="a1a3dc58-be59-421d-8155-76d13451e2d2" config-ref="JSON_Logger_Config" message="userAuthorisation After Request Logger" tracePoint="FLOW"/>
+		<ee:transform doc:name="FinalPayload" doc:id="5b5240c9-7cba-4a17-be55-6179400af577" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+  Description: payload.status,
+  Message: "You logged in successfully!",
+  userid: payload.'_embedded'.'user'.'id'
+}]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<json-logger:logger doc:name="userAuthorisation_End" doc:id="795c0082-0fda-4c4c-9ec7-85927dce5790" config-ref="JSON_Logger_Config" message="userAuthorisation End Logger" tracePoint="END"/>
+		<error-handler >
+			<on-error-continue enableNotifications="true" logException="true" doc:name="On Error Continue" doc:id="618c86a8-e9ce-4b20-86cb-a699aa94c5a8" type="HTTP:BAD_REQUEST, HTTP:CLIENT_SECURITY, HTTP:METHOD_NOT_ALLOWED, HTTP:NOT_ACCEPTABLE, HTTP:PARSING, HTTP:SECURITY, HTTP:TIMEOUT, HTTP:TOO_MANY_REQUESTS, HTTP:UNAUTHORIZED, HTTP:UNSUPPORTED_MEDIA_TYPE, EXPRESSION, STREAM_MAXIMUM_SIZE_EXCEEDED">
+				<ee:transform doc:name="Error Message" doc:id="080a294c-890c-40e4-978e-16dcb6b810d9" >
+					<ee:message >
+						<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+	"Error Type": error.errorType.identifier,
+	"Error Message": error.errorMessage.payload,
+	"Error Description": error.detailedDescription
+}]]></ee:set-payload>
+					</ee:message>
+				</ee:transform>
+				<json-logger:logger doc:name="UserAuthentication_Login_ErrorLogger" doc:id="4a696b4e-9c11-43f1-a226-520f3d9367a8" config-ref="JSON_Logger_Config" message="UserAuthentication Login ErrorLogs" priority="ERROR"/>
+			</on-error-continue>
+		</error-handler>
+	</flow>
+	<flow name="user-auth-updateFlow" doc:id="2d33bca2-7b71-4d26-b62e-8655114bb718" >
+		<json-logger:logger doc:name="userUpdate_Start" doc:id="40796094-358c-4f5d-8fb3-93d33eeb8fcd" config-ref="JSON_Logger_Config" message="userUpdate Start Logger"/>
+		<flow-ref doc:name="user-authorisationFlow" doc:id="2dd74aea-2933-41ef-89f6-ede72a52dd8c" name="user-authorisationFlow" target="authPayload"/>
+		<ee:transform doc:name="Payload" doc:id="10ba7a6c-5ac3-4b0d-bf61-9da724f1400a" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+if(payload.recoveryQuestion == null)
+ {
+  "profile": {
+    ("firstName": payload.firstName) if(payload.firstName !=null),
+    ("lastName": payload.lastName) if(payload.lastName !=null),
+    ("email": payload.emailId) if(payload.emailId !=null),
+    ("login": payload.emailId) if(payload.emailId !=null),
+    ("mobilePhone": payload.phoneNo) if(payload.phoneNo != null)
+  }
+ }
+else
+	{
+  		"profile": {
+    	("firstName": payload.firstName) if(payload.firstName !=null),
+    	("lastName": payload.lastName) if(payload.lastName !=null),
+    	("email": payload.emailId) if(payload.emailId !=null),
+    	("login": payload.emailId) if(payload.emailId !=null),
+    	("mobilePhone": payload.phoneNo) if(payload.phoneNo != null)
+  	   },
+  		"credentials": {
+     	"recovery_question": {
+     	 ("question": payload.recoveryQuestion) if(payload.recoveryQuestion != null),
+      	 ("answer": payload.recoveryAnswer) if(payload.recoveryAnswer != null)
+       }
+     }
+   }]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<http:request method="POST" doc:name="updateRequest" doc:id="72c4b99d-4dc8-4f97-a093-4c86e37785cc" config-ref="HTTP_Request_configuration" path="/users/{userId}">
+			<http:headers ><![CDATA[#[output application/java
+---
+{
+	"Authorization" : "SSWS ${secure::auth.apikey}"
+}]]]></http:headers>
+			<http:uri-params ><![CDATA[#[output application/java
+---
+{
+	"userId" : vars.authPayload.'userid'
+}]]]></http:uri-params>
+		</http:request>
+		<json-logger:logger doc:name="userUpdate_AfterRequest" doc:id="db599212-966a-4d43-806b-6d03ca6d542c" config-ref="JSON_Logger_Config" message="userUpdate After Request Logger" tracePoint="FLOW"/>
+		<ee:transform doc:name="FinalIdPayload" doc:id="ddbedd39-53ef-48b3-b3fb-e4102f18a2c6" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+	Description: payload.status,
+	Message: "User Updated Successfully!",
+	userid: vars.authPayload.'userid'
+}]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<json-logger:logger doc:name="userUpdate_End" doc:id="069fca26-1adb-44be-979b-eadc3812c3c7" config-ref="JSON_Logger_Config" message="userUpdate End Logger" tracePoint="END"/>
+		<error-handler >
+			<on-error-continue enableNotifications="true" logException="true" doc:name="On Error Continue" doc:id="51485d45-5562-4ea9-8f13-2034ee085df7" type="HTTP:BAD_REQUEST, HTTP:CLIENT_SECURITY, HTTP:METHOD_NOT_ALLOWED, HTTP:NOT_ACCEPTABLE, HTTP:PARSING, HTTP:SECURITY, HTTP:TIMEOUT, HTTP:TOO_MANY_REQUESTS, HTTP:UNAUTHORIZED, HTTP:UNSUPPORTED_MEDIA_TYPE, EXPRESSION, STREAM_MAXIMUM_SIZE_EXCEEDED">
+				<ee:transform doc:name="Error Description" doc:id="f3092d8d-b387-4c1b-872b-08e7eb15a35f" >
+					<ee:message >
+						<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+	"Error Type": error.errorType.identifier,
+	"Error Message": error.errorMessage.payload,
+	"Error Description": error.detailedDescription
+}]]></ee:set-payload>
+					</ee:message>
+				</ee:transform>
+				<json-logger:logger doc:name="UserAuthentication_Update_ErrorLogger" doc:id="6aa204a9-0f65-4277-a6b1-b7bf76e0e8e8" config-ref="JSON_Logger_Config" message="User Authentication Update ErrorLogs" priority="ERROR"/>
+			</on-error-continue>
+		</error-handler>
+	</flow>
+	<flow name="user-auth-resetPasswordFlow" doc:id="1c2139fa-bb58-4db5-a8e4-c0ffb5e9588c" >
+		<json-logger:logger doc:name="UserResetPassword_Start" doc:id="eeb3510a-2101-429c-b6fa-b7d06ea3e48f" config-ref="JSON_Logger_Config" message="UserResetPassword Start Logger"/>
+		<flow-ref doc:name="user-authorisationFlow" doc:id="94cf001f-d4f1-4fc0-969d-6b9d5ced038c" name="user-authorisationFlow" target="authPayload"/>
+		<ee:transform doc:name="PayloadPassword" doc:id="31e538f1-f0ab-4c8e-8345-1dc7eb8798ae" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+  "credentials": {
+    "password" : { "value": payload.newPassword }
+  }
+}]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<http:request method="POST" doc:name="resetPWDRequest" doc:id="8ecdabd4-6c28-41b1-8007-56c21aaf4ccb" config-ref="HTTP_Request_configuration" path="/users/{userId}">
+			<http:headers ><![CDATA[#[output application/java
+---
+{
+	"Authorization" : "SSWS ${secure::auth.apikey}"
+}]]]></http:headers>
+			<http:uri-params ><![CDATA[#[output application/java
+---
+{
+	"userId" : vars.authPayload.'userid'
+}]]]></http:uri-params>
+		</http:request>
+		<json-logger:logger doc:name="UserResetPassword_AfterRequest" doc:id="19134fff-5619-4b88-9661-21cf2da25912" config-ref="JSON_Logger_Config" message="UserResetPassword After Request" tracePoint="FLOW"/>
+		<ee:transform doc:name="Status Message" doc:id="011f5303-1376-45ea-b1a8-926cfd6598c7" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+	Description: payload.status,
+	Message: "User Credentials Updated Successfully!"
+}]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<json-logger:logger doc:name="UserResetPassword_End" doc:id="caec94c5-a31b-439c-976f-b15aea5a4b0c" config-ref="JSON_Logger_Config" message="UserResetPassword End Logger" tracePoint="END"/>
+		<error-handler >
+			<on-error-continue enableNotifications="true" logException="true" doc:name="On Error Continue" doc:id="11aa5c4f-65c1-43e7-8f4e-6d9536d1096e" type="HTTP:BAD_REQUEST, HTTP:CLIENT_SECURITY, HTTP:METHOD_NOT_ALLOWED, HTTP:NOT_ACCEPTABLE, HTTP:PARSING, HTTP:SECURITY, HTTP:TIMEOUT, HTTP:TOO_MANY_REQUESTS, HTTP:UNAUTHORIZED, HTTP:UNSUPPORTED_MEDIA_TYPE, EXPRESSION, STREAM_MAXIMUM_SIZE_EXCEEDED">
+				<ee:transform doc:name="Error Description" doc:id="f4f60476-c004-43fd-8869-4c41e96fa169" >
+					<ee:message >
+						<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+	"Error Type": error.errorType.identifier,
+	"Error Message": error.errorMessage.payload,
+	"Error Description": error.detailedDescription
+}]]></ee:set-payload>
+					</ee:message>
+				</ee:transform>
+				<json-logger:logger doc:name="UserAuthentication_ResetPassword_ErrorLogger" doc:id="12987266-1b04-4dcd-b6f6-5d0d4525b773" config-ref="JSON_Logger_Config" message="User Authentication ResetPassword ErrorLogs" priority="ERROR"/>
+			</on-error-continue>
+		</error-handler>
+	</flow>
+	<flow name="user-auth-forgotPasswordFlow" doc:id="4c7c051a-1b61-4564-b755-80f4ca6cb761" >
+		<json-logger:logger doc:name="UserForgotPassword_Start" doc:id="c31a7144-b884-4d80-bfcc-1bab63fc52ef" config-ref="JSON_Logger_Config" message="UserForgotPassword Start Logger"/>
+		<flow-ref doc:name="user-getUserDetailsFlow" doc:id="84c642fe-fdff-4f1a-a9ba-1ccfa19065ff" name="user-getUserDetailsFlow" target="getPayload"/>
+		<http:request method="POST" doc:name="forgotPWDRequest" doc:id="c23c7d3c-693f-470e-b276-43314fe68b9f" config-ref="HTTP_Request_configuration" path="/users/{userId}/credentials/forgot_password" sendBodyMode="NEVER">
+			<http:headers ><![CDATA[#[output application/java
+---
+{
+	"Authorization" : "SSWS ${secure::auth.apikey}"
+}]]]></http:headers>
+			<http:uri-params ><![CDATA[#[output application/java
+---
+{
+	"userId" : vars.getPayload.'Userid'
+}]]]></http:uri-params>
+			<http:query-params ><![CDATA[#[output application/java
+---
+{
+	"sendEmail" : "false"
+}]]]></http:query-params>
+		</http:request>
+		<json-logger:logger doc:name="UserForgotPassword_AfterRequest" doc:id="bb409a8e-5b91-4276-9bec-7b6c439604e2" config-ref="JSON_Logger_Config" message="UserForgotPassword After Request" tracePoint="FLOW"/>
+		<ee:transform doc:name="Final Payload" doc:id="5664188d-d789-4196-bdb8-1470f6a75013" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+	Message: "Please find the below URL to reset password",
+	ResetUrl: payload.resetPasswordUrl
+}]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<json-logger:logger doc:name="UserForgotPassword_End" doc:id="d2589b6d-884a-4038-b256-1e6b15bda1dc" config-ref="JSON_Logger_Config" message="UserForgotPassword End Logger" tracePoint="END"/>
+		<error-handler >
+			<on-error-continue enableNotifications="true" logException="true" doc:name="On Error Continue" doc:id="0cb327b5-6588-4ac2-bad1-5adf22f2e51f" type="HTTP:BAD_REQUEST, HTTP:CLIENT_SECURITY, HTTP:METHOD_NOT_ALLOWED, HTTP:NOT_ACCEPTABLE, HTTP:PARSING, HTTP:SECURITY, HTTP:TIMEOUT, HTTP:TOO_MANY_REQUESTS, HTTP:UNAUTHORIZED, HTTP:UNSUPPORTED_MEDIA_TYPE, EXPRESSION, STREAM_MAXIMUM_SIZE_EXCEEDED">
+				<ee:transform doc:name="Error Description" doc:id="72e1193b-9b38-409d-8e69-0ed2ed8ddf98" >
+					<ee:message >
+						<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+	"Error Type": error.errorType.identifier,
+	"Error Message": error.errorMessage.payload,
+	"Error Description": error.detailedDescription
+}]]></ee:set-payload>
+					</ee:message>
+				</ee:transform>
+				<json-logger:logger doc:name="UserAuth_ForgotPassword_ErrorLogger" doc:id="5aa64d71-927c-4703-8c21-ff8c7b733a8f" config-ref="JSON_Logger_Config" message="UserAuth ForgotPassword ErrorLogs" priority="ERROR"/>
+			</on-error-continue>
+		</error-handler>
+	</flow>
+	<flow name="user-getUserDetailsFlow" doc:id="bb7817df-973f-486c-bd20-01b5783fa76a" >
+		<json-logger:logger doc:name="UserGetUserDetails_Start" doc:id="fbc59683-60d4-49d9-94a0-79fb6b13c274" config-ref="JSON_Logger_Config" message="UserGetUserDetails Start Logger"/>
+		<http:request method="GET" doc:name="Request" doc:id="8c5f44aa-bb12-4c6f-b701-f98c2fa8c3bf" config-ref="HTTP_Request_configuration" path="/users">
+			<http:headers ><![CDATA[#[output application/java
+---
+{
+	"Authorization" : "SSWS ${secure::auth.apikey}"
+}]]]></http:headers>
+			<http:query-params ><![CDATA[#[output application/java
+---
+{
+	"q" : payload.emailId,
+	"limit" : "1"
+}]]]></http:query-params>
+		</http:request>
+		<json-logger:logger doc:name="UserGetUserDetails_AfterRequest" doc:id="8def1418-c1ac-484f-907c-9f338eb3e5a5" config-ref="JSON_Logger_Config" message="UserGetUserDetails After Request" tracePoint="FLOW"/>
+		<ee:transform doc:name="UserIdPayload" doc:id="ac1bb036-19a6-4290-94ed-ed916568dd71" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+payload map {
+  	Description: $.status,
+  	Userid: $.'id'
+  	} reduce($$ ++ $)]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<json-logger:logger doc:name="UserGetUserDetails_End" doc:id="6d9bc5a5-3902-491b-b7f4-1a8df9c1fcc3" config-ref="JSON_Logger_Config" message="UserGetUserDetails End" tracePoint="END"/>
+		<error-handler >
+			<on-error-continue enableNotifications="true" logException="true" doc:name="On Error Continue" doc:id="e301a81c-cc66-4176-98f1-83ee456cd39e" type="HTTP:BAD_REQUEST, HTTP:CLIENT_SECURITY, HTTP:METHOD_NOT_ALLOWED, HTTP:NOT_ACCEPTABLE, HTTP:PARSING, HTTP:SECURITY, HTTP:TIMEOUT, HTTP:TOO_MANY_REQUESTS, HTTP:UNAUTHORIZED, HTTP:UNSUPPORTED_MEDIA_TYPE, EXPRESSION, STREAM_MAXIMUM_SIZE_EXCEEDED">
+				<ee:transform doc:name="Error Message" doc:id="063f5254-e0ce-4674-8212-cf72ec407c16" >
+					<ee:message >
+						<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+	"Error Type": error.errorType.identifier,
+	"Error Message": error.errorMessage.payload,
+	"Error Description": error.detailedDescription
+}]]></ee:set-payload>
+					</ee:message>
+				</ee:transform>
+				<json-logger:logger doc:name="UserAuth_GetUserDeatils_ErrorLogger" doc:id="3109e3dd-deb4-43bd-8419-dbeb8e479499" config-ref="JSON_Logger_Config" message="Use rAuthentication GetUser Deatils ErrorLogs" priority="ERROR"/>
+			</on-error-continue>
+		</error-handler>
+	</flow>
+</mule>

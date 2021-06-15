@@ -1,0 +1,89 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<types:mule xmlns:types="http://www.mulesoft.org/schema/mule/types">
+  <types:catalog>
+    <types:type name="customerType" format="json">
+      <types:shape format="weave" example="examples/customerIdType-1.json"><![CDATA[%dw 2.0
+
+type customerType = {|
+  firstName: String, 
+  lastName: String, 
+  emailId: String, 
+  phoneNo: String, 
+  "“statusTypeId”": Number {"typeId": "int"}
+|} {"example": "{\\\"firstName\\\":\\\"User1\\\",\\\"lastName\\\":\\\"UserLast1\\\",\\\"emailId\\\":\\\"User1@gmail.com\\\",\\\"phoneNo\\\":\\\"8765432599\\\",\\\"\u201CstatusTypeId\u201D\\\":1}"}
+
+]]></types:shape>
+    </types:type>
+    <types:type name="serviceNowType" format="json">
+      <types:shape format="weave" example="examples/createIncident.json"><![CDATA[%dw 2.0
+
+type serviceNowType = {|
+  caller_id: String, 
+  comments: String, 
+  short_description: String, 
+  state: String
+|} {"example": "{\\\"caller_id\\\":\\\"fbdgh123\\\",\\\"comments\\\":\\\"DataComments\\\",\\\"short_description\\\":\\\"Issue in Database Connectivity\\\",\\\"state\\\":\\\"stateid\\\"}"}
+
+]]></types:shape>
+    </types:type>
+    <types:type name="message" format="java">
+      <types:shape format="raml"><![CDATA[#%RAML 1.0 DataType
+type: string]]></types:shape>
+    </types:type>
+  </types:catalog>
+  <types:enrichment select="#815c1a35-659b-4432-9185-bfeef3ef1d74">
+    <types:processor-declaration>
+      <types:input-event>
+        <types:message>
+          <types:payload type="customerType[]"/>
+        </types:message>
+      </types:input-event>
+    </types:processor-declaration>
+  </types:enrichment>
+  <types:enrichment select="#e7035aac-6566-45dc-8975-91025df2cb53">
+    <types:processor-declaration>
+      <types:input-event>
+        <types:message>
+          <types:payload type="customerType"/>
+          <types:attributes type="customerType"/>
+        </types:message>
+      </types:input-event>
+    </types:processor-declaration>
+  </types:enrichment>
+  <types:enrichment select="#10ba7a6c-5ac3-4b0d-bf61-9da724f1400a">
+    <types:processor-declaration>
+      <types:input-event>
+        <types:message>
+          <types:payload type="customerType"/>
+        </types:message>
+      </types:input-event>
+    </types:processor-declaration>
+  </types:enrichment>
+  <types:enrichment select="#31e538f1-f0ab-4c8e-8345-1dc7eb8798ae">
+    <types:processor-declaration>
+      <types:input-event>
+        <types:message>
+          <types:payload type="customerType"/>
+        </types:message>
+      </types:input-event>
+    </types:processor-declaration>
+  </types:enrichment>
+  <types:enrichment select="#2b2aabdb-3382-4d71-ba6b-164a54086173">
+    <types:processor-declaration>
+      <types:input-event>
+        <types:message>
+          <types:payload type="serviceNowType"/>
+        </types:message>
+      </types:input-event>
+    </types:processor-declaration>
+  </types:enrichment>
+  <types:enrichment select="#70489a74-8fec-4429-adb9-3e3dc80c4f36">
+    <types:processor-declaration>
+      <types:input-event>
+        <types:message>
+          <types:payload type="message"/>
+        </types:message>
+      </types:input-event>
+    </types:processor-declaration>
+  </types:enrichment>
+</types:mule>
