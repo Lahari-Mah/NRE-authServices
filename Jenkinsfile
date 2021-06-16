@@ -10,7 +10,7 @@ pipeline
     
     stage('Deploy Application to MuleSoft CloudHub'){
      steps{
-    		sh 'mvn package deploy -DmuleDeploy -DskipTests -Dmule.version=4.3.0 -Danypoint.username=lahariteja -Danypoint.password=Mah@987654321 -Denv=Sandbox -Dappname=NRE-authServices'
+    		sh 'mvn package deploy -DmuleDeploy -DskipTests -Dmule.version=4.3.0 -Danypoint.username=lahariteja1 -Danypoint.password=Mah@987654321 -Denv=Sandbox -Dappname=NRE-userAuthServices'
     	}
     }
     
