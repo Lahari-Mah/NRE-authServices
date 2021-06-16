@@ -24,7 +24,6 @@ http://www.mulesoft.org/schema/mule/api-gateway http://www.mulesoft.org/schema/m
 	</http:listener-config>
 	<configuration doc:name="Configuration" doc:id="7b17cb21-70c5-406c-a8b1-32a2161aa0fd" defaultErrorHandler-ref="globalError_Handler" />
 	<service-now-nre:config name="ServiceNow_NRE_Config" doc:name="ServiceNow-NRE Config" doc:id="24af8194-b00a-430d-b5e3-b7a157d977b2" property_host="${serviceNow.host}" property_port="${serviceNow.port}" property_protocol="${serviceNow.protocol}" property_responseTimeout="100000" />
-	<api-gateway:autodiscovery apiId="${autoD.apiID}" ignoreBasePath="true" doc:name="API Autodiscovery" doc:id="c73503a1-3786-44a3-b00e-ed9daeb8ba70" flowRef="user-auth-sapi-main" />
 	<error-handler name="globalError_Handler" doc:id="c7ebccf4-3ae0-407e-839b-f04b2662da28" >
 		<on-error-propagate enableNotifications="true" logException="true" doc:name="On Error Propagate" doc:id="e996d1c9-4c76-4ccd-9dcc-031c73331136" type="HTTP:INTERNAL_SERVER_ERROR, HTTP:GATEWAY_TIMEOUT, HTTP:BAD_GATEWAY, HTTP:CONNECTIVITY, HTTP:FORBIDDEN, HTTP:NOT_FOUND, HTTP:RETRY_EXHAUSTED, HTTP:SERVICE_UNAVAILABLE">
 				<try doc:name="Try" doc:id="2a365db8-b708-4545-a584-8b82a69cad21">
