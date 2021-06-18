@@ -43,7 +43,7 @@ output application/json
 }]]></ee:set-payload>
 					</ee:message>
 				</ee:transform>
-				<service-now-nre:create-incident doc:name="Create incident" doc:id="1866d3cd-bb76-4ccc-8da3-5a52bacb3de1" config-ref="ServiceNow_NRE_Config"/>
+				<service-now-nre:create-incident doc:name="Create incident" doc:id="1866d3cd-bb76-4ccc-8da3-5a52bacb3de1" config-ref="ServiceNow_NRE_Config" client-id="${serviceNow.clientId}" client-secret="${serviceNow.clientSecret}"/>
 					<raise-error doc:name="APP:SERVER_CONNECTIVITY" doc:id="a1abd7d9-e455-4daa-bb59-707a793c92d0" type="APP:SERVER_CONNECTIVITY" description='Internal Server Error' />
 				<error-handler >
 					<on-error-continue enableNotifications="true" logException="true" doc:name="On Error Continue" doc:id="925167ac-7670-485d-9653-d0f7356e3473" type="APP:SERVER_CONNECTIVITY">
